@@ -1,7 +1,7 @@
 package com.simpledeveloper.averse.api;
 
-import com.simpledeveloper.averse.ui.Author;
-import com.simpledeveloper.averse.ui.Poem;
+import com.simpledeveloper.averse.pojos.Poets;
+import com.simpledeveloper.averse.pojos.Poem;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import retrofit2.http.Path;
 public interface PoemsImplInterface {
 
     @POST("/author")
-    Call<Author> queryAllAuthors();
+    Call<Poets> queryAllAuthors();
 
     @POST("/author/{poet}")
     Call<List<Poem>> queryPoemsByAuthor(@Path("poet") String poet);
