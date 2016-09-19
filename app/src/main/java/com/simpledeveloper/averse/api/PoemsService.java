@@ -18,7 +18,7 @@ public class PoemsService {
 
     private PoemsImplInterface mInterface;
 
-    private final String BASE_URL = "https://thundercomb-poetry-db-v1.p.mashape.com";
+    private static final String BASE_URL = "https://thundercomb-poetry-db-v1.p.mashape.com";
 
     public PoemsService() {
 

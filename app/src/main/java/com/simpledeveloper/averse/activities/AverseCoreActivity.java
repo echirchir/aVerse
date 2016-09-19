@@ -45,7 +45,7 @@ public class AverseCoreActivity extends AppCompatActivity {
             apiService.getPoetsAsync(new Callback<Poets>() {
                 @Override
                 public void onResponse(Call<Poets> call, Response<Poets> response) {
-                    Log.d("TAG", "completed json: " + response.body().getAuthors().size());
+                    Log.d("TAG", "completed json: " + response.body().getAuthors().get(0));
                 }
 
                 @Override
