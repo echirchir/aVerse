@@ -4,10 +4,12 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.simpledeveloper.averse.R;
 import com.simpledeveloper.averse.api.PoemsService;
@@ -15,6 +17,7 @@ import com.simpledeveloper.averse.db.Poet;
 import com.simpledeveloper.averse.pojos.Poem;
 import com.simpledeveloper.averse.pojos.Poets;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
@@ -44,11 +47,20 @@ public class AverseCoreActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                queryPoetsAsync();
+                //queryPoetsAsync();
 
-                //queryPoemsByPoetName("Ernest Dowson");
+                queryPoemsByPoetName("Ben Jonson");
             }
         });
+
+        com.simpledeveloper.averse.db.Poem myPoem = mRealm.where(com.simpledeveloper.averse.db.Poem.class)
+                .equalTo("author", "Ben Jonson").findAllSorted("id").get(0);
+
+        TextView sample = (TextView) findViewById(R.id.sample);
+
+        String formatted = myPoem.getLines().replace("$", "\n");
+
+        sample.setText(formatted);
 
     }
 
@@ -110,10 +122,65 @@ public class AverseCoreActivity extends AppCompatActivity {
             apiService.getPoemsByPoet(new Callback<List<Poem>>() {
                 @Override
                 public void onResponse(Call<List<Poem>> call, Response<List<Poem>> response) {
+
+                    RealmResults<com.simpledeveloper.averse.db.Poem> poemsByAuthor = mRealm.where(com.simpledeveloper
+                            .averse.db.Poem.class)
+                            .equalTo("author", response.body().get(0).getAuthor())
+                            .findAll();
+
+                    if (!poemsByAuthor.isEmpty()){
+                        mRealm.beginTransaction();
+                        poemsByAuthor.deleteAllFromRealm();
+                        mRealm.commitTransaction();
+                    }
+
+                    com.simpledeveloper.averse.db.Poem poem;
+
                     for (int i = 0; i < response.body().size(); i++) {
-                        Log.d("TAG", "completed json: " + response.body().get(i).getAuthor());
-                        Log.d("TAG", "completed json: " + response.body().get(i).getTitle());
-                        Log.d("TAG", "completed json: " + response.body().get(i).getLinecount());
+
+                        List<String> lines = response.body().get(i).getLines();
+
+                        List<String> formattedLines = new ArrayList<>();
+
+                        for (String str : lines) {
+                            Log.d("LINESFORMATTED", str);
+                            if (str.equals("")){
+                                formattedLines.add("$");
+                            }else{
+                                formattedLines.add(str);
+                            }
+
+                        }
+
+                        String completed = TextUtils.join("$", formattedLines);
+
+                        Log.d("LINESFORMATTED", completed);
+
+                        RealmResults<com.simpledeveloper.averse.db.Poem> currentPoems = mRealm.where(com.simpledeveloper
+                                .averse.db.Poem.class)
+                                .equalTo("author", response.body().get(i).getAuthor())
+                                .findAll();
+
+                        poem = new com.simpledeveloper.averse.db.Poem();
+
+                        long lastPoemId;
+
+                        if (currentPoems.isEmpty()){
+                            poem.setId(0);
+                        }else{
+                            lastPoemId = currentPoems.last().getId();
+                            poem.setId(lastPoemId + 1);
+                        }
+
+                        poem.setAuthor(response.body().get(i).getAuthor());
+                        poem.setTitle(response.body().get(i).getTitle());
+                        poem.setLinecount(response.body().get(i).getLinecount());
+                        poem.setLines(completed);
+
+                        mRealm.beginTransaction();
+                        mRealm.copyToRealm(poem);
+                        mRealm.commitTransaction();
+
                     }
 
                 }
