@@ -180,7 +180,6 @@ public class AverseCoreActivity extends AppCompatActivity {
                         mRealm.beginTransaction();
                         mRealm.copyToRealm(poem);
                         mRealm.commitTransaction();
-
                     }
 
                 }
