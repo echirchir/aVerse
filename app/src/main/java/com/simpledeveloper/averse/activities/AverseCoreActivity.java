@@ -11,8 +11,14 @@ import android.view.View;
 
 import com.simpledeveloper.averse.R;
 import com.simpledeveloper.averse.api.PoemsService;
+import com.simpledeveloper.averse.db.Poet;
+import com.simpledeveloper.averse.pojos.Poem;
 import com.simpledeveloper.averse.pojos.Poets;
 
+import java.util.List;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -21,12 +27,16 @@ public class AverseCoreActivity extends AppCompatActivity {
 
     private PoemsService apiService;
 
+    private Realm mRealm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_averse_core);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mRealm = Realm.getDefaultInstance();
 
         apiService = new PoemsService();
 
@@ -35,6 +45,8 @@ public class AverseCoreActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 queryPoetsAsync();
+
+                //queryPoemsByPoetName("Ernest Dowson");
             }
         });
 
@@ -46,6 +58,41 @@ public class AverseCoreActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<Poets> call, Response<Poets> response) {
                     Log.d("TAG", "completed json: " + response.body().getAuthors().get(0));
+
+                    RealmResults<Poet> oldPoets = mRealm.where(Poet.class).findAllSorted("id");
+
+                    /* clean up old data to avoid duplication */
+                    if (!oldPoets.isEmpty()){
+                        mRealm.beginTransaction();
+                        oldPoets.deleteAllFromRealm();
+                        mRealm.commitTransaction();
+                    }
+
+                    List<String> syncedPoets = response.body().getAuthors();
+
+                    int numberOfPoets = syncedPoets.size();
+
+                    for (int i = 0; i < numberOfPoets; i++) {
+
+                        RealmResults<Poet> poets = mRealm.where(Poet.class).findAllSorted("id");
+
+                        Poet poet = new Poet();
+
+                        long lastPoetId;
+
+                        if (poets.isEmpty()){
+                            poet.setId(0);
+                        }else{
+                            lastPoetId = poets.last().getId();
+                            poet.setId(lastPoetId + 1);
+                        }
+
+                        poet.setPoetName(syncedPoets.get(i));
+
+                        mRealm.beginTransaction();
+                        mRealm.copyToRealm(poet);
+                        mRealm.commitTransaction();
+                    }
                 }
 
                 @Override
@@ -53,6 +100,29 @@ public class AverseCoreActivity extends AppCompatActivity {
 
                 }
             });
+        }finally {
+            Log.d("TAG", "completed");
+        }
+    }
+
+    void queryPoemsByPoetName(String name){
+        try {
+            apiService.getPoemsByPoet(new Callback<List<Poem>>() {
+                @Override
+                public void onResponse(Call<List<Poem>> call, Response<List<Poem>> response) {
+                    for (int i = 0; i < response.body().size(); i++) {
+                        Log.d("TAG", "completed json: " + response.body().get(i).getAuthor());
+                        Log.d("TAG", "completed json: " + response.body().get(i).getTitle());
+                        Log.d("TAG", "completed json: " + response.body().get(i).getLinecount());
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call<List<Poem>> call, Throwable t) {
+
+                }
+            }, name);
         }finally {
             Log.d("TAG", "completed");
         }

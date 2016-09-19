@@ -29,7 +29,6 @@ public class PoemsService {
 
                         Request original = chain.request();
 
-                        // Request customization: add request headers
                         Request.Builder requestBuilder = original.newBuilder()
                                 .header("X-Mashape-Key", "N8gntYIsnKmshwxYo0Hky3PquUL9p1chgQcjsnLkHXNC2AkQsW")
                                 .header("Accept", "application/json")
