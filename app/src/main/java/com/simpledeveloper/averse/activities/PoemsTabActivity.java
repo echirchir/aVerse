@@ -12,7 +12,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -96,93 +95,85 @@ public class PoemsTabActivity extends AppCompatActivity {
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), poems.size());
 
-        // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
     }
 
     void queryPoemsByPoetName(String name){
-        try {
-            apiService.getPoemsByPoet(new Callback<List<com.simpledeveloper.averse.pojos.Poem>>() {
-                @Override
-                public void onResponse(Call<List<com.simpledeveloper.averse.pojos.Poem>> call, Response<List<com.simpledeveloper.averse.pojos.Poem>> response) {
+        apiService.getPoemsByPoet(new Callback<List<com.simpledeveloper.averse.pojos.Poem>>() {
+            @Override
+            public void onResponse(Call<List<com.simpledeveloper.averse.pojos.Poem>> call, Response<List<com.simpledeveloper.averse.pojos.Poem>> response) {
 
-                    RealmResults<com.simpledeveloper.averse.db.Poem> poemsByAuthor = mRealm.where(com.simpledeveloper
+                RealmResults<com.simpledeveloper.averse.db.Poem> poemsByAuthor = mRealm.where(com.simpledeveloper
+                        .averse.db.Poem.class)
+                        .equalTo("author", response.body().get(0).getAuthor())
+                        .findAll();
+
+                if (!poemsByAuthor.isEmpty()){
+                    mRealm.beginTransaction();
+                    poemsByAuthor.deleteAllFromRealm();
+                    mRealm.commitTransaction();
+                }
+
+                com.simpledeveloper.averse.db.Poem poem;
+
+                for (int i = 0; i < response.body().size(); i++) {
+
+                    List<String> lines = response.body().get(i).getLines();
+
+                    List<String> formattedLines = new ArrayList<>();
+
+                    for (String str : lines) {
+                        if (str.equals("")){
+                            formattedLines.add("$");
+                        }else{
+                            formattedLines.add(str);
+                        }
+
+                    }
+
+                    String completed = TextUtils.join("$", formattedLines);
+
+                    RealmResults<com.simpledeveloper.averse.db.Poem> currentPoems = mRealm.where(com.simpledeveloper
                             .averse.db.Poem.class)
-                            .equalTo("author", response.body().get(0).getAuthor())
                             .findAll();
 
-                    if (!poemsByAuthor.isEmpty()){
-                        mRealm.beginTransaction();
-                        poemsByAuthor.deleteAllFromRealm();
-                        mRealm.commitTransaction();
+                    poem = new com.simpledeveloper.averse.db.Poem();
+
+                    long lastPoemId;
+
+                    if (currentPoems.isEmpty()){
+                        poem.setId(0);
+                    }else{
+                        lastPoemId = currentPoems.last().getId();
+                        poem.setId(lastPoemId + 1);
                     }
 
-                    com.simpledeveloper.averse.db.Poem poem;
+                    poem.setAuthor(response.body().get(i).getAuthor());
+                    poem.setTitle(response.body().get(i).getTitle());
+                    poem.setLinecount(response.body().get(i).getLinecount());
+                    poem.setLines(completed);
 
-                    for (int i = 0; i < response.body().size(); i++) {
-
-                        List<String> lines = response.body().get(i).getLines();
-
-                        List<String> formattedLines = new ArrayList<>();
-
-                        for (String str : lines) {
-                            Log.d("LINESFORMATTED", str);
-                            if (str.equals("")){
-                                formattedLines.add("$");
-                            }else{
-                                formattedLines.add(str);
-                            }
-
-                        }
-
-                        String completed = TextUtils.join("$", formattedLines);
-
-                        Log.d("LINESFORMATTED", completed);
-
-                        RealmResults<com.simpledeveloper.averse.db.Poem> currentPoems = mRealm.where(com.simpledeveloper
-                                .averse.db.Poem.class)
-                                .findAll();
-
-                        poem = new com.simpledeveloper.averse.db.Poem();
-
-                        long lastPoemId;
-
-                        if (currentPoems.isEmpty()){
-                            poem.setId(0);
-                        }else{
-                            lastPoemId = currentPoems.last().getId();
-                            poem.setId(lastPoemId + 1);
-                        }
-
-                        poem.setAuthor(response.body().get(i).getAuthor());
-                        poem.setTitle(response.body().get(i).getTitle());
-                        poem.setLinecount(response.body().get(i).getLinecount());
-                        poem.setLines(completed);
-
-                        mRealm.beginTransaction();
-                        mRealm.copyToRealm(poem);
-                        mRealm.commitTransaction();
-                    }
-
-                    if (dialog != null && dialog.isShowing()){
-                        dialog.dismiss();
-                    }
-
-                    finish();
-                    startActivity(getIntent());
-
+                    mRealm.beginTransaction();
+                    mRealm.copyToRealm(poem);
+                    mRealm.commitTransaction();
                 }
 
-                @Override
-                public void onFailure(Call<List<com.simpledeveloper.averse.pojos.Poem>> call, Throwable t) {
-                    Utils.showSnackBar(PoemsTabActivity.this, mCoordinatorLayout, R.string.something_went_wrong);
+                if (dialog != null && dialog.isShowing()){
+                    dialog.dismiss();
                 }
-            }, name);
-        }finally {
 
-        }
+                finish();
+                startActivity(getIntent());
+
+            }
+
+            @Override
+            public void onFailure(Call<List<com.simpledeveloper.averse.pojos.Poem>> call, Throwable t) {
+                Utils.showSnackBar(PoemsTabActivity.this, mCoordinatorLayout, R.string.something_went_wrong);
+            }
+        }, name);
     }
 
     @Override

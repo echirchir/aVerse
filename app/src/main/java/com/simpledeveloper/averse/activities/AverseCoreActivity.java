@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -96,6 +97,8 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
 
+        ViewCompat.setNestedScrollingEnabled(mRecyclerView, false);
+
         mRecyclerView.addItemDecoration(new DividerItemDecorator(this, DividerItemDecorator.VERTICAL_LIST));
 
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecyclerView, new RecyclerItemClickListener
@@ -175,58 +178,56 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
     }
 
     void queryPoetsAsync(){
-        try {
-            apiService.getPoetsAsync(new Callback<Poets>() {
-                @Override
-                public void onResponse(Call<Poets> call, Response<Poets> response) {
+        apiService.getPoetsAsync(new Callback<Poets>() {
+            @Override
+            public void onResponse(Call<Poets> call, Response<Poets> response) {
 
-                    if (dialog != null && dialog.isShowing()){
-                        dialog.dismiss();
-                    }
-
-                    RealmResults<Poet> oldPoets = mRealm.where(Poet.class).findAllSorted("id");
-
-                    if (!oldPoets.isEmpty()){
-                        mRealm.beginTransaction();
-                        oldPoets.deleteAllFromRealm();
-                        mRealm.commitTransaction();
-                    }
-
-                    List<String> syncedPoets = response.body().getAuthors();
-
-                    int numberOfPoets = syncedPoets.size();
-
-                    for (int i = 0; i < numberOfPoets; i++) {
-
-                        RealmResults<Poet> poets = mRealm.where(Poet.class).findAllSorted("id");
-
-                        Poet poet = new Poet();
-
-                        long lastPoetId;
-
-                        if (poets.isEmpty()){
-                            poet.setId(0);
-                        }else{
-                            lastPoetId = poets.last().getId();
-                            poet.setId(lastPoetId + 1);
-                        }
-
-                        poet.setPoetName(syncedPoets.get(i));
-
-                        mRealm.beginTransaction();
-                        mRealm.copyToRealm(poet);
-                        mRealm.commitTransaction();
-                    }
+                if (dialog != null && dialog.isShowing()){
+                    dialog.dismiss();
                 }
 
-                @Override
-                public void onFailure(Call<Poets> call, Throwable t) {
+                RealmResults<Poet> oldPoets = mRealm.where(Poet.class).findAllSorted("id");
 
+                if (!oldPoets.isEmpty()){
+                    mRealm.beginTransaction();
+                    oldPoets.deleteAllFromRealm();
+                    mRealm.commitTransaction();
                 }
-            });
-        }finally {
-            initPoets();
-        }
+
+                List<String> syncedPoets = response.body().getAuthors();
+
+                int numberOfPoets = syncedPoets.size();
+
+                for (int i = 0; i < numberOfPoets; i++) {
+
+                    RealmResults<Poet> poets = mRealm.where(Poet.class).findAllSorted("id");
+
+                    Poet poet = new Poet();
+
+                    long lastPoetId;
+
+                    if (poets.isEmpty()){
+                        poet.setId(0);
+                    }else{
+                        lastPoetId = poets.last().getId();
+                        poet.setId(lastPoetId + 1);
+                    }
+
+                    poet.setPoetName(syncedPoets.get(i));
+
+                    mRealm.beginTransaction();
+                    mRealm.copyToRealm(poet);
+                    mRealm.commitTransaction();
+                }
+
+                initPoets();
+            }
+
+            @Override
+            public void onFailure(Call<Poets> call, Throwable t) {
+
+            }
+        });
     }
 
     void initPoets(){
