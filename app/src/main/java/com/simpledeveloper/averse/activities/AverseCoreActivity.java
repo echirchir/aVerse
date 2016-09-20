@@ -54,6 +54,9 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
         setContentView(R.layout.activity_averse_core);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -67,18 +70,10 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
             @Override
             public void onClick(View view) {
                 //queryPoetsAsync();
-
-                queryPoemsByPoetName("Ben Jonson");
             }
         });
 
         mNoPoetsView = (TextView) findViewById(R.id.no_poets);
-
-        /*TextView sample = (TextView) findViewById(R.id.sample);
-
-        String formatted = myPoem.getLines().replace("$", "\n");
-
-        sample.setText(formatted);*/
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout android:id="@+id/main_content"
-                                                 xmlns:android="http://schemas.android.com/apk/res/android"
-                                                 xmlns:app="http://schemas.android.com/apk/res-auto"
-                                                 xmlns:tools="http://schemas.android.com/tools"
-                                                 android:layout_width="match_parent"
-                                                 android:layout_height="match_parent"
-                                                 android:fitsSystemWindows="true"
-                                                 tools:context="com.simpledeveloper.averse.activities.PoemsTabActivity">
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:fitsSystemWindows="true"
+     tools:context="com.simpledeveloper.averse.activities.PoemsTabActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"
@@ -29,9 +29,23 @@
 
     <android.support.v4.view.ViewPager
         android:id="@+id/container"
+        android:background="@color/core_background_dark"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+    <com.simpledeveloper.averse.custom.AverseTextView
+        android:id="@+id/no_poems"
+        android:layout_width="match_parent"
+        android:background="@color/core_background_dark"
+        android:textColor="@color/colorAccent"
+        android:textSize="18sp"
+        android:padding="16dp"
+        android:visibility="visible"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center"
+        android:text="@string/poet_has_no_poems"
+        android:layout_height="wrap_content"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

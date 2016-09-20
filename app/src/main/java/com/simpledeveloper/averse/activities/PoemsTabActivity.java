@@ -23,6 +23,7 @@ import com.simpledeveloper.averse.db.Poem;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
+import static android.view.View.GONE;
 import static com.simpledeveloper.averse.R.id.poem;
 
 public class PoemsTabActivity extends AppCompatActivity {
@@ -55,10 +56,14 @@ public class PoemsTabActivity extends AppCompatActivity {
 
         String name = intent.getExtras().getString("name");
 
-        this.setTitle("Author - " +name);
+        setTitle(name);
 
         poems = mRealm.where(com.simpledeveloper.averse.db.Poem.class)
                 .equalTo("author", name).findAllSorted("id");
+
+        if (!poems.isEmpty()){
+            findViewById(R.id.no_poems).setVisibility(GONE);
+        }
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), poems.size());
 
