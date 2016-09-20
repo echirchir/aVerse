@@ -163,6 +163,13 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mRealm.close();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_averse_core, menu);

@@ -187,6 +187,13 @@ public class PoemsTabActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mRealm.close();
+    }
+
     void showProgress(){
         if (dialog == null) {
             dialog = new ProgressDialog(this);
