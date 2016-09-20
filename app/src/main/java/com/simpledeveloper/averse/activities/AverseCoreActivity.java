@@ -1,5 +1,6 @@
 package com.simpledeveloper.averse.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
@@ -73,9 +74,6 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
 
         mNoPoetsView = (TextView) findViewById(R.id.no_poets);
 
-        com.simpledeveloper.averse.db.Poem myPoem = mRealm.where(com.simpledeveloper.averse.db.Poem.class)
-                .equalTo("author", "Ben Jonson").findAllSorted("id").get(10);
-
         /*TextView sample = (TextView) findViewById(R.id.sample);
 
         String formatted = myPoem.getLines().replace("$", "\n");
@@ -93,7 +91,9 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
                 .OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                // TODO: 9/17/16 probably disable clicks here
+                Intent intent = new Intent(AverseCoreActivity.this, PoemsTabActivity.class);
+                intent.putExtra("name", mAuthorAdapter.getItem(position).getAuthor());
+                startActivity(intent);
             }
 
             @Override
@@ -101,7 +101,6 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
 
             }
         }));
-
 
     }
 

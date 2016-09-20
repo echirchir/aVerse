@@ -1,16 +1,47 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingBottom="@dimen/activity_vertical_margin"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                tools:context="com.simpledeveloper.averse.activities.PoemsTabActivity$PlaceholderFragment">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:background="@color/core_background_dark"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:layout_margin="4dp"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.simpledeveloper.averse.activities.PoemsTabActivity$PoemFragment">
 
-    <TextView
-        android:id="@+id/section_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp">
 
-</RelativeLayout>
+        <com.simpledeveloper.averse.custom.AverseTextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:textSize="20sp"
+            android:padding="8dp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@color/colorAccent"
+            android:layout_weight=".3"
+            android:background="@color/core_background"/>
+
+        <com.simpledeveloper.averse.custom.AverseTextView
+            android:id="@+id/poem"
+            android:layout_width="match_parent"
+            android:layout_weight=".8"
+            android:padding="4dp"
+            android:layout_marginTop="4dp"
+            android:textSize="18sp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@color/colorAccent"
+            android:layout_height="0dp"/>
+
+    </LinearLayout>
+
+
+
+</ScrollView>
