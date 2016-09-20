@@ -249,7 +249,20 @@ public class PoemsTabActivity extends AppCompatActivity {
         public void onDestroy() {
             super.onDestroy();
 
-            tts = null;
+            if (tts != null) {
+                tts.stop();
+                tts.shutdown();
+            }
+        }
+
+        @Override
+        public void onDetach() {
+            super.onDetach();
+
+            if (tts != null) {
+                tts.stop();
+                tts.shutdown();
+            }
         }
 
         @Override
