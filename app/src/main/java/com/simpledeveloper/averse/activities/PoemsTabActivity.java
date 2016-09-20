@@ -17,8 +17,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.ScrollView;
 
 import com.simpledeveloper.averse.R;
 import com.simpledeveloper.averse.api.PoemsService;
@@ -101,6 +104,17 @@ public class PoemsTabActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        mViewPager.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            }
+        });
+
+
+        mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener());
+
     }
 
     void queryPoemsByPoetName(String name){
@@ -133,7 +147,6 @@ public class PoemsTabActivity extends AppCompatActivity {
                         }else{
                             formattedLines.add(str);
                         }
-
                     }
 
                     String completed = TextUtils.join("$", formattedLines);
@@ -177,6 +190,7 @@ public class PoemsTabActivity extends AppCompatActivity {
             }
         }, name);
     }
+
 
     @Override
     protected void onPause() {
