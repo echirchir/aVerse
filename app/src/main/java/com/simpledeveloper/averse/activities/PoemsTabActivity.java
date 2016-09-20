@@ -1,27 +1,40 @@
 package com.simpledeveloper.averse.activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.speech.tts.TextToSpeech;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.simpledeveloper.averse.R;
+import com.simpledeveloper.averse.api.PoemsService;
 import com.simpledeveloper.averse.custom.AverseTextView;
 import com.simpledeveloper.averse.db.Poem;
+import com.simpledeveloper.averse.helpers.Utils;
+import com.simpledeveloper.averse.network.InternetConnectionDetector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.view.View.GONE;
 import static com.simpledeveloper.averse.R.id.poem;
@@ -35,6 +48,16 @@ public class PoemsTabActivity extends AppCompatActivity {
     private Realm mRealm;
 
     private static RealmResults<com.simpledeveloper.averse.db.Poem> poems;
+
+    private PoemsService apiService;
+
+    private String name;
+
+    private InternetConnectionDetector detector;
+
+    private CoordinatorLayout mCoordinatorLayout;
+
+    private ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +75,15 @@ public class PoemsTabActivity extends AppCompatActivity {
 
         mRealm = Realm.getDefaultInstance();
 
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        apiService = new PoemsService();
+
+        detector = new InternetConnectionDetector(this);
+
         Intent intent = getIntent();
 
-        String name = intent.getExtras().getString("name");
+        name = intent.getExtras().getString("name");
 
         setTitle(name);
 
@@ -71,20 +100,99 @@ public class PoemsTabActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+    }
 
+    void queryPoemsByPoetName(String name){
+        try {
+            apiService.getPoemsByPoet(new Callback<List<com.simpledeveloper.averse.pojos.Poem>>() {
+                @Override
+                public void onResponse(Call<List<com.simpledeveloper.averse.pojos.Poem>> call, Response<List<com.simpledeveloper.averse.pojos.Poem>> response) {
+
+                    RealmResults<com.simpledeveloper.averse.db.Poem> poemsByAuthor = mRealm.where(com.simpledeveloper
+                            .averse.db.Poem.class)
+                            .equalTo("author", response.body().get(0).getAuthor())
+                            .findAll();
+
+                    if (!poemsByAuthor.isEmpty()){
+                        mRealm.beginTransaction();
+                        poemsByAuthor.deleteAllFromRealm();
+                        mRealm.commitTransaction();
+                    }
+
+                    com.simpledeveloper.averse.db.Poem poem;
+
+                    for (int i = 0; i < response.body().size(); i++) {
+
+                        List<String> lines = response.body().get(i).getLines();
+
+                        List<String> formattedLines = new ArrayList<>();
+
+                        for (String str : lines) {
+                            Log.d("LINESFORMATTED", str);
+                            if (str.equals("")){
+                                formattedLines.add("$");
+                            }else{
+                                formattedLines.add(str);
+                            }
+
+                        }
+
+                        String completed = TextUtils.join("$", formattedLines);
+
+                        Log.d("LINESFORMATTED", completed);
+
+                        RealmResults<com.simpledeveloper.averse.db.Poem> currentPoems = mRealm.where(com.simpledeveloper
+                                .averse.db.Poem.class)
+                                .findAll();
+
+                        poem = new com.simpledeveloper.averse.db.Poem();
+
+                        long lastPoemId;
+
+                        if (currentPoems.isEmpty()){
+                            poem.setId(0);
+                        }else{
+                            lastPoemId = currentPoems.last().getId();
+                            poem.setId(lastPoemId + 1);
+                        }
+
+                        poem.setAuthor(response.body().get(i).getAuthor());
+                        poem.setTitle(response.body().get(i).getTitle());
+                        poem.setLinecount(response.body().get(i).getLinecount());
+                        poem.setLines(completed);
+
+                        mRealm.beginTransaction();
+                        mRealm.copyToRealm(poem);
+                        mRealm.commitTransaction();
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call<List<com.simpledeveloper.averse.pojos.Poem>> call, Throwable t) {
+                    Utils.showSnackBar(PoemsTabActivity.this, mCoordinatorLayout, R.string.something_went_wrong);
+                }
+            }, name);
+        }finally {
+
+            finish();
+            startActivity(getIntent());
+        }
+    }
+
+    void showProgress(){
+        if (dialog == null) {
+            dialog = new ProgressDialog(this);
+            dialog.setMessage(getString(R.string.fetching_poems));
+            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            dialog.setIndeterminate(true);
+            dialog.setCanceledOnTouchOutside(true);
+        }
+        dialog.show();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_poems_tab, menu);
         return true;
     }
@@ -98,17 +206,56 @@ public class PoemsTabActivity extends AppCompatActivity {
         if (id == android.R.id.home) {
             startActivity(new Intent(this, AverseCoreActivity.class));
             return true;
+        }else if (id == R.id.action_refresh){
+            if (detector.isConnectedToInternet()){
+                queryPoemsByPoetName(name);
+                showProgress();
+            }else{
+                Utils.showSnackBar(PoemsTabActivity.this, mCoordinatorLayout, R.string.network_warning);
+            }
+
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public static class PoemFragment extends Fragment {
+    public static class PoemFragment extends Fragment implements TextToSpeech.OnInitListener {
 
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PoemFragment() {
         }
+
+        private TextToSpeech tts;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+
+            tts = new TextToSpeech(getActivity(), this);
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            menu.clear();
+            inflater.inflate(R.menu.poem_menu_play, menu);
+            super.onCreateOptionsMenu(menu, inflater);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_play:
+
+                    return true;
+                default:
+                    return super.onOptionsItemSelected(item);
+            }
+
+        }
+
 
         public static PoemFragment newInstance(int sectionNumber) {
             PoemFragment fragment = new PoemFragment();
@@ -136,6 +283,12 @@ public class PoemsTabActivity extends AppCompatActivity {
 
             return rootView;
         }
+
+        @Override
+        public void onInit(int i) {
+
+        }
+
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {

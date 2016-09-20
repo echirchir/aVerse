@@ -10,4 +10,11 @@
     <string name="search">Search</string>
     <string name="search_authors">Search poets</string>
     <string name="poet_has_no_poems">You have not fetched this poet\'s poems. Use the button to your top right to do so!</string>
+    <string name="action_play">Play</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="success_poets_sync">Poets fetched successfully!</string>
+    <string name="something_went_wrong">Something went wrong. Try again soon!</string>
+    <string name="network_warning">Please turn ON your wifi or data!</string>
+    <string name="fetching_poems">Fetching poems, please wait ...</string>
+    <string name="fetching_poets">Fetching poets, please wait ...</string>
 </resources>

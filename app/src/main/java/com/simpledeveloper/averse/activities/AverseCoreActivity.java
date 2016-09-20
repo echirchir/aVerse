@@ -1,7 +1,9 @@
 package com.simpledeveloper.averse.activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -9,8 +11,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,8 +22,9 @@ import com.simpledeveloper.averse.adapters.AuthorAdapter;
 import com.simpledeveloper.averse.api.PoemsService;
 import com.simpledeveloper.averse.db.Poet;
 import com.simpledeveloper.averse.helpers.DividerItemDecorator;
+import com.simpledeveloper.averse.helpers.Utils;
 import com.simpledeveloper.averse.listeners.RecyclerItemClickListener;
-import com.simpledeveloper.averse.pojos.Poem;
+import com.simpledeveloper.averse.network.InternetConnectionDetector;
 import com.simpledeveloper.averse.pojos.Poets;
 import com.simpledeveloper.averse.ui.Author;
 
@@ -36,6 +37,7 @@ import io.realm.Sort;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 
 public class AverseCoreActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
@@ -51,6 +53,11 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
 
     private TextView mNoPoetsView;
 
+    private CoordinatorLayout mCoordinatorLayout;
+
+    private InternetConnectionDetector mConnectionDetector;
+    private ProgressDialog dialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,15 +72,24 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
 
         apiService = new PoemsService();
 
+        mConnectionDetector = new InternetConnectionDetector(this);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //queryPoetsAsync();
+                if (mConnectionDetector.isConnectedToInternet()){
+                    queryPoetsAsync();
+                    toggleProgressbar();
+                }else{
+                    Utils.showSnackBar(AverseCoreActivity.this, mCoordinatorLayout, R.string.network_warning);
+                }
             }
         });
 
         mNoPoetsView = (TextView) findViewById(R.id.no_poets);
+
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -97,6 +113,18 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
             }
         }));
 
+    }
+
+    void toggleProgressbar(){
+        if (dialog == null){
+            dialog = new ProgressDialog(this);
+            dialog.setMessage(getString(R.string.fetching_poets));
+            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            dialog.setIndeterminate(true);
+            dialog.setCanceledOnTouchOutside(true);
+        }
+
+        dialog.show();
     }
 
     @Override
@@ -137,17 +165,18 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
 
     }
 
-
     void queryPoetsAsync(){
         try {
             apiService.getPoetsAsync(new Callback<Poets>() {
                 @Override
                 public void onResponse(Call<Poets> call, Response<Poets> response) {
-                    Log.d("TAG", "completed json: " + response.body().getAuthors().get(0));
+
+                    if (dialog != null && dialog.isShowing()){
+                        dialog.dismiss();
+                    }
 
                     RealmResults<Poet> oldPoets = mRealm.where(Poet.class).findAllSorted("id");
 
-                    /* clean up old data to avoid duplication */
                     if (!oldPoets.isEmpty()){
                         mRealm.beginTransaction();
                         oldPoets.deleteAllFromRealm();
@@ -187,84 +216,8 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
                 }
             });
         }finally {
-            Log.d("TAG", "completed");
-        }
-    }
-
-    void queryPoemsByPoetName(String name){
-        try {
-            apiService.getPoemsByPoet(new Callback<List<Poem>>() {
-                @Override
-                public void onResponse(Call<List<Poem>> call, Response<List<Poem>> response) {
-
-                    RealmResults<com.simpledeveloper.averse.db.Poem> poemsByAuthor = mRealm.where(com.simpledeveloper
-                            .averse.db.Poem.class)
-                            .equalTo("author", response.body().get(0).getAuthor())
-                            .findAll();
-
-                    if (!poemsByAuthor.isEmpty()){
-                        mRealm.beginTransaction();
-                        poemsByAuthor.deleteAllFromRealm();
-                        mRealm.commitTransaction();
-                    }
-
-                    com.simpledeveloper.averse.db.Poem poem;
-
-                    for (int i = 0; i < response.body().size(); i++) {
-
-                        List<String> lines = response.body().get(i).getLines();
-
-                        List<String> formattedLines = new ArrayList<>();
-
-                        for (String str : lines) {
-                            Log.d("LINESFORMATTED", str);
-                            if (str.equals("")){
-                                formattedLines.add("$");
-                            }else{
-                                formattedLines.add(str);
-                            }
-
-                        }
-
-                        String completed = TextUtils.join("$", formattedLines);
-
-                        Log.d("LINESFORMATTED", completed);
-
-                        RealmResults<com.simpledeveloper.averse.db.Poem> currentPoems = mRealm.where(com.simpledeveloper
-                                .averse.db.Poem.class)
-                                .equalTo("author", response.body().get(i).getAuthor())
-                                .findAll();
-
-                        poem = new com.simpledeveloper.averse.db.Poem();
-
-                        long lastPoemId;
-
-                        if (currentPoems.isEmpty()){
-                            poem.setId(0);
-                        }else{
-                            lastPoemId = currentPoems.last().getId();
-                            poem.setId(lastPoemId + 1);
-                        }
-
-                        poem.setAuthor(response.body().get(i).getAuthor());
-                        poem.setTitle(response.body().get(i).getTitle());
-                        poem.setLinecount(response.body().get(i).getLinecount());
-                        poem.setLines(completed);
-
-                        mRealm.beginTransaction();
-                        mRealm.copyToRealm(poem);
-                        mRealm.commitTransaction();
-                    }
-
-                }
-
-                @Override
-                public void onFailure(Call<List<Poem>> call, Throwable t) {
-
-                }
-            }, name);
-        }finally {
-            Log.d("TAG", "completed");
+            Utils.showSnackBar(AverseCoreActivity.this, mCoordinatorLayout, R.string.success_poets_sync);
+            initPoets();
         }
     }
 
