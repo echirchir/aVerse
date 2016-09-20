@@ -3,6 +3,8 @@ package com.simpledeveloper.averse.activities;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -12,16 +14,21 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.simpledeveloper.averse.R;
+import com.simpledeveloper.averse.adapters.AuthorAdapter;
 import com.simpledeveloper.averse.api.PoemsService;
 import com.simpledeveloper.averse.db.Poet;
+import com.simpledeveloper.averse.helpers.DividerItemDecorator;
+import com.simpledeveloper.averse.listeners.RecyclerItemClickListener;
 import com.simpledeveloper.averse.pojos.Poem;
 import com.simpledeveloper.averse.pojos.Poets;
+import com.simpledeveloper.averse.ui.Author;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -31,6 +38,14 @@ public class AverseCoreActivity extends AppCompatActivity {
     private PoemsService apiService;
 
     private Realm mRealm;
+
+    private RecyclerView mRecyclerView;
+
+    private List<Author> authorsList;
+
+    private AuthorAdapter mAuthorAdapter;
+
+    private TextView mNoPoetsView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,15 +68,45 @@ public class AverseCoreActivity extends AppCompatActivity {
             }
         });
 
+        mNoPoetsView = (TextView) findViewById(R.id.no_poets);
+
         com.simpledeveloper.averse.db.Poem myPoem = mRealm.where(com.simpledeveloper.averse.db.Poem.class)
                 .equalTo("author", "Ben Jonson").findAllSorted("id").get(10);
 
-        TextView sample = (TextView) findViewById(R.id.sample);
+        /*TextView sample = (TextView) findViewById(R.id.sample);
 
         String formatted = myPoem.getLines().replace("$", "\n");
 
-        sample.setText(formatted);
+        sample.setText(formatted);*/
 
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setHasFixedSize(true);
+
+        mRecyclerView.addItemDecoration(new DividerItemDecorator(this, DividerItemDecorator.VERTICAL_LIST));
+
+        mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecyclerView, new RecyclerItemClickListener
+                .OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                // TODO: 9/17/16 probably disable clicks here
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+
+            }
+        }));
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        initPoets();
     }
 
     void queryPoetsAsync(){
@@ -194,6 +239,27 @@ public class AverseCoreActivity extends AppCompatActivity {
         }
     }
 
+    void initPoets(){
+        authorsList = new ArrayList<>();
+
+        RealmResults<Poet> poets = mRealm.where(Poet.class).findAllSorted("poetName", Sort.ASCENDING);
+
+        if (!poets.isEmpty()){
+            for (Poet p: poets) {
+                authorsList.add(new Author(p.getId(), p.getPoetName()));
+            }
+        }
+
+        mAuthorAdapter = new AuthorAdapter(authorsList);
+        mRecyclerView.setAdapter(mAuthorAdapter);
+        mAuthorAdapter.notifyDataSetChanged();
+
+        if (mAuthorAdapter.getItemCount() != 0){
+            mNoPoetsView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_averse_core, menu);
@@ -206,7 +272,7 @@ public class AverseCoreActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_search) {
             return true;
         }
         return super.onOptionsItemSelected(item);

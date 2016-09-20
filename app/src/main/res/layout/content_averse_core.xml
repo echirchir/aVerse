@@ -11,13 +11,30 @@
     tools:context="com.simpledeveloper.averse.activities.AverseCoreActivity"
     tools:showIn="@layout/activity_averse_core">
 
-    <com.simpledeveloper.averse.custom.AverseTextView
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/sample"
-        android:textSize="18sp"
-        android:textColor="@color/colorAccent"
-        android:gravity="center_horizontal"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="match_parent"
+        android:background="@color/core_background">
+
+        <TextView
+            android:id="@+id/no_poets"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:textSize="18sp"
+            android:layout_gravity="center_vertical"
+            android:visibility="visible"
+            android:textColor="@color/colorAccent"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="@string/no_poets_found"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:scrollbars="vertical"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>
