@@ -14,14 +14,15 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/core_background">
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/no_poets"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:padding="20dp"
             android:textSize="18sp"
+            android:background="@color/core_background"
             android:layout_gravity="center_vertical"
             android:visibility="visible"
             android:textColor="@color/colorAccent"

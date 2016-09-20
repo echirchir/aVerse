@@ -2,13 +2,16 @@ package com.simpledeveloper.averse.activities;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -33,7 +36,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class AverseCoreActivity extends AppCompatActivity {
+public class AverseCoreActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     private PoemsService apiService;
 
@@ -108,6 +111,38 @@ public class AverseCoreActivity extends AppCompatActivity {
 
         initPoets();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_averse_core, menu);
+
+        final MenuItem item = menu.findItem(R.id.action_search);
+
+        MenuItemCompat.expandActionView(item);
+
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+
+        searchView.setQueryHint(getString(R.string.search_authors));
+
+        searchView.setOnQueryTextListener(this);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.action_search:
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
 
     void queryPoetsAsync(){
         try {
@@ -250,7 +285,7 @@ public class AverseCoreActivity extends AppCompatActivity {
             }
         }
 
-        mAuthorAdapter = new AuthorAdapter(authorsList);
+        mAuthorAdapter = new AuthorAdapter(authorsList, this);
         mRecyclerView.setAdapter(mAuthorAdapter);
         mAuthorAdapter.notifyDataSetChanged();
 
@@ -261,20 +296,41 @@ public class AverseCoreActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_averse_core, menu);
-        return true;
+    public boolean onQueryTextSubmit(String query) {
+        return false;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onQueryTextChange(String newText) {
 
-        int id = item.getItemId();
+        if (newText.equals("")){
+            initPoets();
+            return true;
+        }else{
+            final List<Author> filteredModelList = filter(authorsList, newText);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
+            mAuthorAdapter.notifyDataSetChanged();
+            mRecyclerView.setAdapter(mAuthorAdapter);
+            mAuthorAdapter.animateTo(filteredModelList);
+            mRecyclerView.scrollToPosition(0);
             return true;
         }
-        return super.onOptionsItemSelected(item);
+    }
+
+    List<Author> filter(List<Author> models, String query) {
+
+        query = query.toLowerCase();
+
+        final List<Author> filteredModelList = new ArrayList<>();
+
+        if(query.equals("")) { return authorsList; }
+
+        for (Author model : models) {
+            final String text = model.getAuthor().toLowerCase();
+            if (text.contains(query)) {
+                filteredModelList.add(model);
+            }
+        }
+        return filteredModelList;
     }
 }

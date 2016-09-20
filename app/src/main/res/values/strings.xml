@@ -8,4 +8,5 @@
     <string name="sample_author">William Shakespeare</string>
     <string name="no_poets_found">You have no poets at the moment. Use the button above to fetch some!</string>
     <string name="search">Search</string>
+    <string name="search_authors">Search poets</string>
 </resources>

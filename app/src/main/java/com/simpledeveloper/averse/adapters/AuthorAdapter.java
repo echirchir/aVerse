@@ -1,6 +1,7 @@
 package com.simpledeveloper.averse.adapters;
 
-import android.graphics.Color;
+import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,9 +22,11 @@ import io.realm.RealmResults;
 public class AuthorAdapter extends RecyclerView.Adapter<AuthorViewHolder>{
 
     private List<Author> authors;
+    private Context mContext;
 
-    public AuthorAdapter(List<Author> authors) {
+    public AuthorAdapter(List<Author> authors, Context context) {
         this.authors = authors;
+        this.mContext = context;
     }
 
     @Override
@@ -44,8 +47,9 @@ public class AuthorAdapter extends RecyclerView.Adapter<AuthorViewHolder>{
                 .equalTo("author", authors.get(position).getAuthor())
                 .findAllSorted("id");
 
-        TextDrawable drawable = TextDrawable.builder().buildRound((!poems.isEmpty() ? ""+poems.size() : "0"), Color
-                .LTGRAY);
+        TextDrawable drawable = TextDrawable.builder()
+                .buildRound((!poems.isEmpty() ? ""+poems.size() : "0"), ContextCompat.getColor(mContext,
+                        R.color.colorAccent));
         holder.mTotal.setImageDrawable(drawable);
 
     }
