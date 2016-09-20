@@ -17,4 +17,5 @@
     <string name="network_warning">Please turn ON your wifi or data!</string>
     <string name="fetching_poems">Fetching poems, please wait ...</string>
     <string name="fetching_poets">Fetching poets, please wait ...</string>
+    <string name="language_not_supported">Unfortunately, your language is not supported!</string>
 </resources>

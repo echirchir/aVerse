@@ -2,6 +2,7 @@ package com.simpledeveloper.averse.activities;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.design.widget.CoordinatorLayout;
@@ -27,7 +28,9 @@ import com.simpledeveloper.averse.helpers.Utils;
 import com.simpledeveloper.averse.network.InternetConnectionDetector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -232,6 +235,7 @@ public class PoemsTabActivity extends AppCompatActivity {
         }
 
         private TextToSpeech tts;
+        private String formatted;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -239,6 +243,13 @@ public class PoemsTabActivity extends AppCompatActivity {
             setHasOptionsMenu(true);
 
             tts = new TextToSpeech(getActivity(), this);
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+
+            tts = null;
         }
 
         @Override
@@ -252,7 +263,9 @@ public class PoemsTabActivity extends AppCompatActivity {
         public boolean onOptionsItemSelected(MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_play:
-
+                    if (formatted != null){
+                        playPoem(formatted);
+                    }
                     return true;
                 default:
                     return super.onOptionsItemSelected(item);
@@ -260,6 +273,27 @@ public class PoemsTabActivity extends AppCompatActivity {
 
         }
 
+        void playPoem(String say){
+
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+                ttsGreaterThan21(say);
+            }
+            else {
+                ttsUnder21(say);
+            }
+        }
+
+        private void ttsGreaterThan21(String speech){
+            String utteranceId=this.hashCode() + "";
+            tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+        }
+
+        @SuppressWarnings("deprecation")
+        private void ttsUnder21(String quote){
+            HashMap<String, String> map = new HashMap<>();
+            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "MessageId");
+            tts.speak(quote, TextToSpeech.QUEUE_FLUSH, map);
+        }
 
         public static PoemFragment newInstance(int sectionNumber) {
             PoemFragment fragment = new PoemFragment();
@@ -280,7 +314,7 @@ public class PoemsTabActivity extends AppCompatActivity {
 
             if (position < poems.size()){
                 Poem poem = poems.get(position);
-                String formatted = poem.getLines().replace("$", "\n");
+                formatted = poem.getLines().replace("$", "\n");
                 poemTitle.setText(poem.getTitle());
                 poemText.setText(formatted);
             }
@@ -289,8 +323,19 @@ public class PoemsTabActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onInit(int i) {
+        public void onInit(int status) {
+            if (status == TextToSpeech.SUCCESS) {
 
+                int result = tts.setLanguage(Locale.getDefault());
+
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+
+                    Utils.showSnackBar(getActivity(), getView(), R.string.language_not_supported);
+                }
+
+            } else {
+                Utils.showSnackBar(getActivity(), getView(), R.string.something_went_wrong);
+            }
         }
 
     }
