@@ -54,7 +54,7 @@ public class AverseCoreActivity extends AppCompatActivity {
         });
 
         com.simpledeveloper.averse.db.Poem myPoem = mRealm.where(com.simpledeveloper.averse.db.Poem.class)
-                .equalTo("author", "Ben Jonson").findAllSorted("id").get(7);
+                .equalTo("author", "Ben Jonson").findAllSorted("id").get(10);
 
         TextView sample = (TextView) findViewById(R.id.sample);
 

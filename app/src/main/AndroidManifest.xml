@@ -2,15 +2,15 @@
 <manifest package="com.simpledeveloper.averse"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
+        android:name=".AverseApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".AverseApp"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
@@ -22,6 +22,11 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".activities.PoemsTabActivity"
+            android:label="@string/title_activity_poems_tab"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 
