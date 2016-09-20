@@ -166,7 +166,6 @@ public class PoemsTabActivity extends AppCompatActivity {
 
                 finish();
                 startActivity(getIntent());
-
             }
 
             @Override
