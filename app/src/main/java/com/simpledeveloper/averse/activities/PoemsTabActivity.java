@@ -166,6 +166,13 @@ public class PoemsTabActivity extends AppCompatActivity {
                         mRealm.commitTransaction();
                     }
 
+                    if (dialog != null && dialog.isShowing()){
+                        dialog.dismiss();
+                    }
+
+                    finish();
+                    startActivity(getIntent());
+
                 }
 
                 @Override
@@ -175,8 +182,15 @@ public class PoemsTabActivity extends AppCompatActivity {
             }, name);
         }finally {
 
-            finish();
-            startActivity(getIntent());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (dialog != null && dialog.isShowing()){
+            dialog.dismiss();
         }
     }
 

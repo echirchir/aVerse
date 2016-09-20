@@ -165,6 +165,15 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (dialog != null && dialog.isShowing()){
+            dialog.dismiss();
+        }
+    }
+
     void queryPoetsAsync(){
         try {
             apiService.getPoetsAsync(new Callback<Poets>() {
@@ -216,7 +225,6 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
                 }
             });
         }finally {
-            Utils.showSnackBar(AverseCoreActivity.this, mCoordinatorLayout, R.string.success_poets_sync);
             initPoets();
         }
     }
