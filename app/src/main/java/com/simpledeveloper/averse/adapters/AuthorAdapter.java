@@ -49,7 +49,7 @@ public class AuthorAdapter extends RecyclerView.Adapter<AuthorViewHolder>{
 
         TextDrawable drawable = TextDrawable.builder()
                 .buildRound((!poems.isEmpty() ? ""+poems.size() : "0"), ContextCompat.getColor(mContext,
-                        R.color.colorAccent));
+                        R.color.colorDivider));
         holder.mTotal.setImageDrawable(drawable);
 
     }
