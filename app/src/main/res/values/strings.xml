@@ -1,21 +1,19 @@
 <resources>
     <string name="app_name">Averse</string>
-    <string name="ok"> OK
-    </string>
+    <string name="ok"> OK</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_poems_tab">Poems</string>
-    <string name="section_format">Hello World from section: %1$d</string>
     <string name="sample_author">William Shakespeare</string>
     <string name="no_poets_found">You have no poets at the moment. Use the button above to fetch some!</string>
     <string name="search">Search</string>
-    <string name="search_authors">Search poets</string>
+    <string name="search_authors">Search poets …</string>
     <string name="poet_has_no_poems">You have not fetched this poet\'s poems. Use the button to your top right to do so!</string>
     <string name="action_play">Play</string>
     <string name="action_refresh">Refresh</string>
     <string name="success_poets_sync">Poets fetched successfully!</string>
     <string name="something_went_wrong">Something went wrong. Try again soon!</string>
     <string name="network_warning">Please turn ON your wifi or data!</string>
-    <string name="fetching_poems">Fetching poems, please wait ...</string>
-    <string name="fetching_poets">Fetching poets, please wait ...</string>
+    <string name="fetching_poems">Fetching poems, please wait …</string>
+    <string name="fetching_poets">Fetching poets, please wait …</string>
     <string name="language_not_supported">Unfortunately, your language is not supported!</string>
 </resources>
