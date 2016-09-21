@@ -17,20 +17,20 @@
 #}
 
 #Using for retrofit & gson
--keep class com.google.gson.** { *; }
--keep class com.google.inject.** { *; }
--keep class retrofit.** { *; }
--keep class sun.misc.Unsafe { *; }
--dontwarn java.nio.file.**
--dontwarn org.codehaus.mojo.animal_sniffer.**
--keep class com.squareup.okhttp.internal.huc.** { *; }
--keep class com.google.gson.stream.** { *; }
--keepclassmembernames interface * {
-    @retrofit.http.* <methods>;
-}
-
--keep class com.simpledeveloper.pojos.Poets.** { *; }
--keep class com.simpledeveloper.pojos.Poem.** { *; }
--keep interface retrofit.** { *;}
--keep interface com.squareup.** { *; }
--dontwarn retrofit2.**
+#-keep class com.google.gson.** { *; }
+#-keep class com.google.inject.** { *; }
+#-keep class retrofit.** { *; }
+#-keep class okio.** { *; }
+#-dontwarn java.nio.file.**
+#-dontwarn org.codehaus.mojo.animal_sniffer.**
+#-keep class com.squareup.okhttp.internal.huc.** { *; }
+#-keep class com.google.gson.stream.** { *; }
+#-keepclassmembernames interface * {
+#    @retrofit.http.* <methods>;
+#}
+#
+#-keep class com.simpledeveloper.averse.pojos.Poets.** { *; }
+#-keep class com.simpledeveloper.averse.pojos.Poem.** { *; }
+#-keep interface retrofit.** { *;}
+#-keep interface com.squareup.** { *; }
+#-dontwarn retrofit2.**
