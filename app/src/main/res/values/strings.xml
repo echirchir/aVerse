@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Averse</string>
+    <string name="app_name">AVerse</string>
     <string name="ok"> OK</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_poems_tab">Poems</string>
