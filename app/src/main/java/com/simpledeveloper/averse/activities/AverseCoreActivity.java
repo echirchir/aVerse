@@ -2,6 +2,7 @@ package com.simpledeveloper.averse.activities;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -29,6 +30,7 @@ import com.simpledeveloper.averse.listeners.RecyclerItemClickListener;
 import com.simpledeveloper.averse.network.InternetConnectionDetector;
 import com.simpledeveloper.averse.pojos.Poets;
 import com.simpledeveloper.averse.ui.Author;
+import com.squareup.seismic.ShakeDetector;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -44,7 +46,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class AverseCoreActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class AverseCoreActivity extends AppCompatActivity implements SearchView.OnQueryTextListener,
+        com.squareup.seismic.ShakeDetector.Listener  {
 
     private PoemsService apiService;
 
@@ -85,12 +88,15 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
             public void onClick(View view) {
                 if (mConnectionDetector.isConnectedToInternet()){
                     queryPoetsAsync();
-                    toggleProgressbar();
                 }else{
                     Utils.showSnackBar(AverseCoreActivity.this, mCoordinatorLayout, R.string.network_warning);
                 }
             }
         });
+
+        SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        ShakeDetector sd = new ShakeDetector(this);
+        sd.start(sensorManager);
 
         mNoPoetsView = (TextView) findViewById(R.id.no_poets);
 
@@ -210,6 +216,7 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
     }
 
     void queryPoetsAsync(){
+        toggleProgressbar();
         apiService.getPoetsAsync(new Callback<Poets>() {
             @Override
             public void onResponse(Call<Poets> call, Response<Poets> response) {
@@ -321,5 +328,10 @@ public class AverseCoreActivity extends AppCompatActivity implements SearchView.
             }
         }
         return filteredModelList;
+    }
+
+    @Override
+    public void hearShake() {
+        queryPoetsAsync();
     }
 }
